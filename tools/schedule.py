@@ -161,7 +161,6 @@ def cal_update_a_schedule(
         return {"error": "Missing required: schedule_id"}
 
     url_new = url + str(schedule_id)
-    headers = header()
     if not headers:
         logging.error("Could not get Cal.com client")
         return {"error": "Could not get Cal.com client"}
@@ -225,6 +224,42 @@ def cal_get_default_schedule() -> dict:
         return {"error": "Unexpected error occurred"}
 
 
+def cal_get_schedule(schedule_id: int) -> dict:
+    """
+    Get a specific schedule from Cal.com by its ID.
+
+    Args:
+        schedule_id (int): ID of the schedule to fetch.
+
+    Returns:
+        dict: If successful, parsed JSON response from Cal.com.
+              If failed, dict with "error" key and message.
+    """
+
+    url = "https://api.cal.com/v2/schedules/"
+    headers = header()
+    if not headers:
+        logging.error("Could not get Cal.com client")
+        return {"error": "Could not get Cal.com client"}
+
+    if not schedule_id:
+        logging.error("Missing required: schedule_id")
+        return {"error": "Missing required: schedule_id"}
+
+    url_new = url + str(schedule_id)
+    logging.info(f"Fetching Cal.com schedule ID: {schedule_id}")
+
+    try:
+        response = requests.get(url_new, headers=headers)
+        response.raise_for_status()
+        logging.info("Successfully fetched schedule")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Could not get schedule: {e}")
+        return {"error": f"Could not get schedule: {e}"}
+    except Exception as e:
+        logging.error(f"Unexpected error when getting schedule: {e}")
+        return {"error": "Unexpected error occurred"}
 
 
 if __name__ == "__main__":
@@ -264,6 +299,7 @@ if __name__ == "__main__":
     print("Update result:", updated)
     
     print(cal_get_default_schedule())
+    print(cal_get_schedule(783234))
     '''
     pass
 
