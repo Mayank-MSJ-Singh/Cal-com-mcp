@@ -193,6 +193,38 @@ def cal_update_a_schedule(
         logging.error(f"Unexpected error when updating Cal.com schedule: {e}")
         return {"error": "Unexpected error occurred"}
 
+def cal_get_default_schedule() -> dict:
+    """
+    Get the default schedule from Cal.com.
+
+    Returns:
+        dict: If successful, parsed JSON response from Cal.com.
+              If failed, dict with "error" key and message.
+    """
+
+    url = "https://api.cal.com/v2/schedules/"
+    url_new = url + "default"
+
+    headers = header()
+    if not headers:
+        logging.error("Could not get Cal.com client")
+        return {"error": "Could not get Cal.com client"}
+
+    logging.info("Fetching default schedule from Cal.com")
+
+    try:
+        response = requests.get(url_new, headers=headers)
+        response.raise_for_status()
+        logging.info("Successfully fetched default schedule")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Could not get default schedule: {e}")
+        return {"error": f"Could not get default schedule: {e}"}
+    except Exception as e:
+        logging.error(f"Unexpected error when getting default schedule: {e}")
+        return {"error": "Unexpected error occurred"}
+
+
 
 
 if __name__ == "__main__":
@@ -230,6 +262,8 @@ if __name__ == "__main__":
     )
 
     print("Update result:", updated)
+    
+    print(cal_get_default_schedule())
     '''
     pass
 
