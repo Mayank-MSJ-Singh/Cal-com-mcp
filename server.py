@@ -29,10 +29,23 @@ from tools import (
     cal_get_schedule,
     cal_delete_a_schedule,
 
-    # stripe.py
-    cal_get_stripe_connect_url,
-    cal_save_stripe_credentials,
-    cal_check_stripe_connection
+    # stripe.py (Not able to test)
+    #cal_get_stripe_connect_url,
+    #cal_save_stripe_credentials,
+    #cal_check_stripe_connection,
+
+    # verified_resources.py
+    cal_request_email_verification_code,
+    cal_verify_email_code,
+    cal_get_verified_emails,
+    cal_get_verified_email_by_id,
+
+    # Phone verification functions not working (tested with Indian numbers)
+    # 'cal_request_phone_verification_code',
+    # 'cal_verify_phone_code',
+
+    cal_get_verified_phones,
+    cal_get_verified_phone_by_id
 )
 
 
@@ -267,40 +280,146 @@ def main(
             ),
 
             #Stripe.py----------------------------------------------------------------
+
+
+            #types.Tool(
+            #    name="cal_get_stripe_connect_url",
+            #    description="Retrieve Stripe Connect URL from Cal.com API for payment setup",
+            #    inputSchema={
+            #        "type": "object",
+            #        "properties": {},  # No parameters required
+            #        "required": []
+            #    }
+            #),
+            #types.Tool(
+            #    name="cal_save_stripe_credentials",
+            #    description="Save Stripe credentials in Cal.com after OAuth authorization",
+            #    inputSchema={
+            #        "type": "object",
+            #        "properties": {
+            #            "state": {
+            #                "type": "string",
+            #                "description": "OAuth state parameter for security verification"
+            #            },
+            #            "code": {
+            #                "type": "string",
+            #                "description": "OAuth authorization code from Stripe"
+            #            }
+            #        },
+            #        "required": ["state", "code"]  # Both parameters are required
+            #    }
+            #),
+            #types.Tool(
+            #    name="cal_check_stripe_connection",
+            #    description="Check Stripe connection status in Cal.com",
+            #    inputSchema={
+            #        "type": "object",
+            #        "properties": {},  # No parameters required
+            #        "required": []
+            #    }
+            #),
+
+
+
+            #verified_resources.py---------------------------------------------------
+            # Email Verification Tools
             types.Tool(
-                name="cal_get_stripe_connect_url",
-                description="Retrieve Stripe Connect URL from Cal.com API for payment setup",
-                inputSchema={
-                    "type": "object",
-                    "properties": {},  # No parameters required
-                    "required": []
-                }
-            ),
-            types.Tool(
-                name="cal_save_stripe_credentials",
-                description="Save Stripe credentials in Cal.com after OAuth authorization",
+                name="cal_request_email_verification_code",
+                description="Request an email verification code from Cal.com API.",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "state": {
+                        "email": {
                             "type": "string",
-                            "description": "OAuth state parameter for security verification"
+                            "description": "Email address to verify",
+                            "format": "email"
+                        }
+                    },
+                    "required": ["email"]
+                }
+            ),
+
+            types.Tool(
+                name="cal_verify_email_code",
+                description="Verify an email address with the received verification code.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "email": {
+                            "type": "string",
+                            "description": "Email address to verify",
+                            "format": "email"
                         },
                         "code": {
                             "type": "string",
-                            "description": "OAuth authorization code from Stripe"
+                            "description": "Verification code received via email"
                         }
                     },
-                    "required": ["state", "code"]  # Both parameters are required
+                    "required": ["email", "code"]
                 }
             ),
+
             types.Tool(
-                name="cal_check_stripe_connection",
-                description="Check Stripe connection status in Cal.com",
+                name="cal_get_verified_emails",
+                description="Retrieve all verified emails from Cal.com API.",
                 inputSchema={
                     "type": "object",
                     "properties": {},  # No parameters required
                     "required": []
+                }
+            ),
+
+            types.Tool(
+                name="cal_get_verified_email_by_id",
+                description="Get a specific verified email by its ID from Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "email_id": {
+                            "type": "integer",
+                            "description": "ID of the verified email to retrieve"
+                        }
+                    },
+                    "required": ["email_id"]
+                }
+            ),
+
+            # Phone Verification Tools (working functions only)
+            types.Tool(
+                name="cal_get_verified_phones",
+                description="Retrieve verified phone numbers with pagination support.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "take": {
+                            "type": "integer",
+                            "description": "Number of records to return (default: 250, max: 250)",
+                            "default": 250,
+                            "minimum": 1,
+                            "maximum": 250
+                        },
+                        "skip": {
+                            "type": "integer",
+                            "description": "Number of records to skip for pagination",
+                            "minimum": 0
+                        }
+                    },
+                    "required": []
+                }
+            ),
+
+            types.Tool(
+                name="cal_get_verified_phone_by_id",
+                description="Get a specific verified phone number by its ID from Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "phone_id": {
+                            "type": "integer",
+                            "description": "ID of the verified phone to retrieve"
+                        }
+                    },
+                    "required": ["phone_id"]
                 }
             )
 
@@ -438,7 +557,129 @@ def main(
                         text=f"Error: {str(e)}",
                     )
                 ]
+
+        #verified_resources.py-----------------------------------------------------------
+        elif name == "cal_request_email_verification_code":
+            try:
+                result = cal_request_email_verification_code(
+                    email=arguments["email"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error requesting email verification code: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_verify_email_code":
+            try:
+                result = cal_verify_email_code(
+                    email=arguments["email"],
+                    code=arguments["code"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error verifying email code: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_get_verified_emails":
+            try:
+                result = cal_get_verified_emails()
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting verified emails: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_get_verified_email_by_id":
+            try:
+                result = cal_get_verified_email_by_id(
+                    email_id=arguments["email_id"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting verified email by ID: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_get_verified_phones":
+            try:
+                result = cal_get_verified_phones(
+                    take=arguments.get("take"),
+                    skip=arguments.get("skip")
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting verified phones: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_get_verified_phone_by_id":
+            try:
+                result = cal_get_verified_phone_by_id(
+                    phone_id=arguments["phone_id"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting verified phone by ID: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
         #Stripe.py-------------------------------------------------------------------------
+        '''
         elif name == "cal_get_stripe_connect_url":
             try:
                 result = cal_get_stripe_connect_url()
@@ -456,7 +697,6 @@ def main(
                         text=f"Error: {str(e)}",
                     )
                 ]
-
         elif name == "cal_save_stripe_credentials":
             try:
                 result = cal_save_stripe_credentials(
@@ -495,6 +735,7 @@ def main(
                         text=f"Error: {str(e)}",
                     )
                 ]
+        '''
     #-------------------------------------------------------------------------
 
     # Set up SSE transport
