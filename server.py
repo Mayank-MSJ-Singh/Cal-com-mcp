@@ -18,15 +18,21 @@ from starlette.types import Receive, Scope, Send
 from dotenv import load_dotenv
 
 from tools import (
-#base.py
-auth_token_context,
-#schedule.py
-cal_get_all_schedules,
-cal_create_a_schedule,
-cal_update_a_schedule,
-cal_get_default_schedule,
-cal_get_schedule,
-cal_delete_a_schedule
+    # base.py
+    auth_token_context,
+
+    # schedule.py
+    cal_get_all_schedules,
+    cal_create_a_schedule,
+    cal_update_a_schedule,
+    cal_get_default_schedule,
+    cal_get_schedule,
+    cal_delete_a_schedule,
+
+    # stripe.py
+    cal_get_stripe_connect_url,
+    cal_save_stripe_credentials,
+    cal_check_stripe_connection
 )
 
 
@@ -258,7 +264,47 @@ def main(
                     },
                     "required": ["schedule_id"]
                 }
+            ),
+
+            #Stripe.py----------------------------------------------------------------
+            types.Tool(
+                name="cal_get_stripe_connect_url",
+                description="Retrieve Stripe Connect URL from Cal.com API for payment setup",
+                inputSchema={
+                    "type": "object",
+                    "properties": {},  # No parameters required
+                    "required": []
+                }
+            ),
+            types.Tool(
+                name="cal_save_stripe_credentials",
+                description="Save Stripe credentials in Cal.com after OAuth authorization",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "state": {
+                            "type": "string",
+                            "description": "OAuth state parameter for security verification"
+                        },
+                        "code": {
+                            "type": "string",
+                            "description": "OAuth authorization code from Stripe"
+                        }
+                    },
+                    "required": ["state", "code"]  # Both parameters are required
+                }
+            ),
+            types.Tool(
+                name="cal_check_stripe_connection",
+                description="Check Stripe connection status in Cal.com",
+                inputSchema={
+                    "type": "object",
+                    "properties": {},  # No parameters required
+                    "required": []
+                }
             )
+
+
         ]
 
     @app.call_tool()
@@ -266,6 +312,8 @@ def main(
             name: str,
             arguments: dict
     ) -> List[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+
+        #Schedule.py------------------------------------------------------------------
         if name == "cal_get_all_schedules":
             try:
                 result = cal_get_all_schedules()
@@ -384,6 +432,63 @@ def main(
                 ]
             except Exception as e:
                 logger.exception(f"Error deleting schedule: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+        #Stripe.py-------------------------------------------------------------------------
+        elif name == "cal_get_stripe_connect_url":
+            try:
+                result = cal_get_stripe_connect_url()
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting Stripe URL: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_save_stripe_credentials":
+            try:
+                result = cal_save_stripe_credentials(
+                    state=arguments["state"],
+                    code=arguments["code"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error saving credentials: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_check_stripe_connection":
+            try:
+                result = cal_check_stripe_connection()
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error checking connection: {e}")
                 return [
                     types.TextContent(
                         type="text",

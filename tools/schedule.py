@@ -1,6 +1,5 @@
 import requests
 import json
-from dotenv import load_dotenv
 import logging
 from base import get_calcom_client
 
@@ -8,8 +7,6 @@ from base import get_calcom_client
 # Configure logging
 logger = logging.getLogger(__name__)
 
-
-load_dotenv()
 
 def header():
     client = get_calcom_client()
