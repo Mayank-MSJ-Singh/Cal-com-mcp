@@ -17,6 +17,18 @@ from starlette.routing import Mount, Route
 from starlette.types import Receive, Scope, Send
 from dotenv import load_dotenv
 
+from tools import (
+#base.py
+auth_token_context,
+#schedule.py
+cal_get_all_schedules,
+cal_create_a_schedule,
+cal_update_a_schedule,
+cal_get_default_schedule,
+cal_get_schedule,
+cal_delete_a_schedule
+)
+
 
 
 # Configure logging
@@ -57,7 +69,196 @@ def main(
     @app.list_tools()
     async def list_tools() -> list[types.Tool]:
         return [
-                
+            # Get all schedules
+            types.Tool(
+                name="cal_get_all_schedules",
+                description="Retrieve all schedules from Cal.com API.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {},  # No parameters required
+                    "required": []
+                }
+            ),
+
+            # Create a schedule
+            types.Tool(
+                name="cal_create_a_schedule",
+                description="Create a new schedule in Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "Name of the new schedule"
+                        },
+                        "timeZone": {
+                            "type": "string",
+                            "description": "Time zone ID (e.g., 'America/New_York')"
+                        },
+                        "isDefault": {
+                            "type": "boolean",
+                            "description": "Whether this should be the default schedule"
+                        },
+                        "availability": {
+                            "type": "array",
+                            "description": "List of availability blocks",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "days": {
+                                        "type": "array",
+                                        "items": {"type": "string"},
+                                        "description": "Capitalized day names (e.g., ['Monday','Tuesday'])"
+                                    },
+                                    "startTime": {
+                                        "type": "string",
+                                        "description": "Start time in HH:mm format"
+                                    },
+                                    "endTime": {
+                                        "type": "string",
+                                        "description": "End time in HH:mm format"
+                                    }
+                                }
+                            }
+                        },
+                        "overrides": {
+                            "type": "array",
+                            "description": "Date-specific overrides",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "date": {
+                                        "type": "string",
+                                        "description": "Date in YYYY-MM-DD format"
+                                    },
+                                    "startTime": {
+                                        "type": "string",
+                                        "description": "Start time in HH:mm format"
+                                    },
+                                    "endTime": {
+                                        "type": "string",
+                                        "description": "End time in HH:mm format"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": ["name", "timeZone", "isDefault"]
+                }
+            ),
+
+            types.Tool(
+                name="cal_update_a_schedule",
+                description="Update an existing schedule in Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "schedule_id": {
+                            "type": "integer",
+                            "description": "ID of the schedule to update"
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "Updated schedule name"
+                        },
+                        "timeZone": {
+                            "type": "string",
+                            "description": "Updated time zone ID (e.g., 'America/New_York')"
+                        },
+                        "isDefault": {
+                            "type": "boolean",
+                            "description": "Whether to make this the default schedule"
+                        },
+                        "availability": {
+                            "type": "array",
+                            "description": "Updated availability blocks",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "days": {
+                                        "type": "array",
+                                        "items": {"type": "string"},
+                                        "description": "Capitalized day names (e.g., ['Monday','Tuesday'])"
+                                    },
+                                    "startTime": {
+                                        "type": "string",
+                                        "description": "Start time in HH:mm format (e.g., '09:00')"
+                                    },
+                                    "endTime": {
+                                        "type": "string",
+                                        "description": "End time in HH:mm format (e.g., '17:00')"
+                                    }
+                                }
+                            }
+                        },
+                        "overrides": {
+                            "type": "array",
+                            "description": "Updated date overrides",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "date": {
+                                        "type": "string",
+                                        "description": "Date in YYYY-MM-DD format (e.g., '2023-12-31')"
+                                    },
+                                    "startTime": {
+                                        "type": "string",
+                                        "description": "Start time in HH:mm format (e.g., '10:00')"
+                                    },
+                                    "endTime": {
+                                        "type": "string",
+                                        "description": "End time in HH:mm format (e.g., '15:00')"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": ["schedule_id"]
+                }
+            ),
+
+            # Get default schedule
+            types.Tool(
+                name="cal_get_default_schedule",
+                description="Get the default schedule from Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {},  # No parameters
+                    "required": []
+                }
+            ),
+
+            # Get specific schedule
+            types.Tool(
+                name="cal_get_schedule",
+                description="Get a specific schedule by its ID.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "schedule_id": {
+                            "type": "integer",
+                            "description": "ID of the schedule to retrieve"
+                        }
+                    },
+                    "required": ["schedule_id"]
+                }
+            ),
+
+            # Delete a schedule
+            types.Tool(
+                name="cal_delete_a_schedule",
+                description="Delete a schedule by its ID.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "schedule_id": {
+                            "type": "integer",
+                            "description": "ID of the schedule to delete"
+                        }
+                    },
+                    "required": ["schedule_id"]
+                }
+            )
         ]
 
     @app.call_tool()
@@ -65,7 +266,130 @@ def main(
             name: str,
             arguments: dict
     ) -> List[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-        pass
+        if name == "cal_get_all_schedules":
+            try:
+                result = cal_get_all_schedules()
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting all schedules: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_create_a_schedule":
+            try:
+                result = cal_create_a_schedule(
+                    name=arguments["name"],
+                    timeZone=arguments["timeZone"],
+                    isDefault=arguments["isDefault"],
+                    availability=arguments.get("availability"),
+                    overrides=arguments.get("overrides")
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error creating schedule: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_update_a_schedule":
+            try:
+                result = cal_update_a_schedule(
+                    schedule_id=arguments["schedule_id"],
+                    name=arguments.get("name"),
+                    timeZone=arguments.get("timeZone"),
+                    isDefault=arguments.get("isDefault"),
+                    availability=arguments.get("availability"),
+                    overrides=arguments.get("overrides")
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error updating schedule: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_get_default_schedule":
+            try:
+                result = cal_get_default_schedule()
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting default schedule: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_get_schedule":
+            try:
+                result = cal_get_schedule(
+                    schedule_id=arguments["schedule_id"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting schedule: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_delete_a_schedule":
+            try:
+                result = cal_delete_a_schedule(
+                    schedule_id=arguments["schedule_id"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error deleting schedule: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
     #-------------------------------------------------------------------------
 
     # Set up SSE transport
