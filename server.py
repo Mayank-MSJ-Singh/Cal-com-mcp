@@ -30,9 +30,9 @@ from tools import (
     cal_delete_a_schedule,
 
     # stripe.py (Not able to test)
-    #cal_get_stripe_connect_url,
-    #cal_save_stripe_credentials,
-    #cal_check_stripe_connection,
+    # cal_get_stripe_connect_url,
+    # cal_save_stripe_credentials,
+    # cal_check_stripe_connection,
 
     # verified_resources.py
     cal_request_email_verification_code,
@@ -45,7 +45,14 @@ from tools import (
     # 'cal_verify_phone_code',
 
     cal_get_verified_phones,
-    cal_get_verified_phone_by_id
+    cal_get_verified_phone_by_id,
+
+    # webhooks.py
+    cal_get_all_webhooks,
+    cal_create_webhook,
+    cal_get_webhook,
+    cal_update_webhook,
+    cal_delete_webhook
 )
 
 
@@ -421,6 +428,174 @@ def main(
                     },
                     "required": ["phone_id"]
                 }
+            ),
+
+            # Webhook Tools-------------------------------------------------------------
+            types.Tool(
+                name="cal_get_all_webhooks",
+                description="Retrieve all webhooks with pagination support from Cal.com API.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "take": {
+                            "type": "integer",
+                            "description": "Number of records to return (default: 250)",
+                            "minimum": 1,
+                            "maximum": 250,
+                            "default": 250
+                        },
+                        "skip": {
+                            "type": "integer",
+                            "description": "Number of records to skip for pagination",
+                            "minimum": 0
+                        }
+                    },
+                    "required": []
+                }
+            ),
+
+            types.Tool(
+                name="cal_create_webhook",
+                description="Create a new webhook in Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "active": {
+                            "type": "boolean",
+                            "description": "Whether the webhook is active"
+                        },
+                        "subscriberUrl": {
+                            "type": "string",
+                            "description": "URL to receive webhook payloads",
+                            "format": "uri"
+                        },
+                        "triggers": {
+                            "type": "array",
+                            "description": "List of trigger events",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "BOOKING_CREATED",
+                                    "BOOKING_PAYMENT_INITIATED",
+                                    "BOOKING_PAID",
+                                    "BOOKING_RESCHEDULED",
+                                    "BOOKING_REQUESTED",
+                                    "BOOKING_CANCELLED",
+                                    "BOOKING_REJECTED",
+                                    "BOOKING_NO_SHOW_UPDATED",
+                                    "FORM_SUBMITTED",
+                                    "MEETING_ENDED",
+                                    "MEETING_STARTED",
+                                    "RECORDING_READY",
+                                    "INSTANT_MEETING",
+                                    "RECORDING_TRANSCRIPTION_GENERATED",
+                                    "OOO_CREATED",
+                                    "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                                    "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                                    "FORM_SUBMITTED_NO_EVENT"
+                                ]
+                            }
+                        },
+                        "payloadTemplate": {
+                            "type": "string",
+                            "description": "Custom payload template (JSON string with Liquid variables)"
+                        },
+                        "secret": {
+                            "type": "string",
+                            "description": "Secret for verifying webhooks"
+                        }
+                    },
+                    "required": ["active", "subscriberUrl", "triggers"]
+                }
+            ),
+
+            types.Tool(
+                name="cal_get_webhook",
+                description="Get a specific webhook by its ID from Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "webhook_id": {
+                            "type": "string",
+                            "description": "ID of the webhook to retrieve"
+                        }
+                    },
+                    "required": ["webhook_id"]
+                }
+            ),
+
+            types.Tool(
+                name="cal_update_webhook",
+                description="Update an existing webhook in Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "webhook_id": {
+                            "type": "string",
+                            "description": "ID of the webhook to update"
+                        },
+                        "active": {
+                            "type": "boolean",
+                            "description": "Whether the webhook is active"
+                        },
+                        "subscriberUrl": {
+                            "type": "string",
+                            "description": "New URL to receive webhook payloads",
+                            "format": "uri"
+                        },
+                        "triggers": {
+                            "type": "array",
+                            "description": "Updated list of trigger events",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "BOOKING_CREATED",
+                                    "BOOKING_PAYMENT_INITIATED",
+                                    "BOOKING_PAID",
+                                    "BOOKING_RESCHEDULED",
+                                    "BOOKING_REQUESTED",
+                                    "BOOKING_CANCELLED",
+                                    "BOOKING_REJECTED",
+                                    "BOOKING_NO_SHOW_UPDATED",
+                                    "FORM_SUBMITTED",
+                                    "MEETING_ENDED",
+                                    "MEETING_STARTED",
+                                    "RECORDING_READY",
+                                    "INSTANT_MEETING",
+                                    "RECORDING_TRANSCRIPTION_GENERATED",
+                                    "OOO_CREATED",
+                                    "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                                    "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                                    "FORM_SUBMITTED_NO_EVENT"
+                                ]
+                            }
+                        },
+                        "payloadTemplate": {
+                            "type": "string",
+                            "description": "Updated payload template (JSON string with Liquid variables)"
+                        },
+                        "secret": {
+                            "type": "string",
+                            "description": "New secret for verifying webhooks"
+                        }
+                    },
+                    "required": ["webhook_id"]
+                }
+            ),
+
+            types.Tool(
+                name="cal_delete_webhook",
+                description="Delete a webhook by its ID from Cal.com.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "webhook_id": {
+                            "type": "string",
+                            "description": "ID of the webhook to delete"
+                        }
+                    },
+                    "required": ["webhook_id"]
+                }
             )
 
 
@@ -678,6 +853,119 @@ def main(
                         text=f"Error: {str(e)}",
                     )
                 ]
+
+        #webhooks.py-----------------------------------------------------------------------
+        elif name == "cal_get_all_webhooks":
+            try:
+                result = cal_get_all_webhooks(
+                    take=arguments.get("take"),
+                    skip=arguments.get("skip")
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting all webhooks: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_create_webhook":
+            try:
+                result = cal_create_webhook(
+                    active=arguments["active"],
+                    subscriberUrl=arguments["subscriberUrl"],
+                    triggers=arguments["triggers"],
+                    payloadTemplate=arguments.get("payloadTemplate"),
+                    secret=arguments.get("secret")
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error creating webhook: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_get_webhook":
+            try:
+                result = cal_get_webhook(
+                    webhook_id=arguments["webhook_id"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error getting webhook: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_update_webhook":
+            try:
+                result = cal_update_webhook(
+                    webhook_id=arguments["webhook_id"],
+                    active=arguments.get("active"),
+                    subscriberUrl=arguments.get("subscriberUrl"),
+                    triggers=arguments.get("triggers"),
+                    payloadTemplate=arguments.get("payloadTemplate"),
+                    secret=arguments.get("secret")
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error updating webhook: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+        elif name == "cal_delete_webhook":
+            try:
+                result = cal_delete_webhook(
+                    webhook_id=arguments["webhook_id"]
+                )
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=json.dumps(result, indent=2),
+                    )
+                ]
+            except Exception as e:
+                logger.exception(f"Error deleting webhook: {e}")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"Error: {str(e)}",
+                    )
+                ]
+
+
         #Stripe.py-------------------------------------------------------------------------
         '''
         elif name == "cal_get_stripe_connect_url":
