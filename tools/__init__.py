@@ -11,11 +11,24 @@ from .schedule import (
     cal_delete_a_schedule
 )
 
-# Import the new Stripe integration functions
 from .stripe import (
     cal_get_stripe_connect_url,
     cal_save_stripe_credentials,
     cal_check_stripe_connection
+)
+
+from .verified_resources import (
+    cal_request_email_verification_code,
+    cal_verify_email_code,
+    cal_get_verified_emails,
+    cal_get_verified_email_by_id,
+
+    #Not added functions that were not working on my side, but in the code -
+    #cal_request_phone_verification_code,
+    #cal_verify_phone_code,
+
+    cal_get_verified_phones,
+    cal_get_verified_phone_by_id
 )
 
 __all__ = [
@@ -33,5 +46,17 @@ __all__ = [
     # stripe.py
     "cal_get_stripe_connect_url",
     "cal_save_stripe_credentials",
-    "cal_check_stripe_connection"
+    "cal_check_stripe_connection",
+
+    # verified_resources.py
+    "cal_request_email_verification_code",
+    "cal_verify_email_code",
+    "cal_get_verified_emails",
+
+    #Not added functions that were not working on my side, but in the code -
+    #'cal_request_phone_verification_code',
+    #'cal_verify_phone_code',
+
+    "cal_get_verified_phones",
+    "cal_get_verified_phone_by_id"
 ]
