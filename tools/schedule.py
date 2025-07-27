@@ -116,6 +116,82 @@ def cal_create_a_schedule(
         logging.error(f"Unexpected error when creating Cal.com schedule: {e}")
         return {"error": "Unexpected error occurred"}
 
+def cal_update_a_schedule(
+    schedule_id: int,
+    name: str = None,
+    timeZone: str = None,
+    isDefault: bool = None,
+    availability: list = None,
+    overrides: list = None
+) -> dict:
+    """
+    Update an existing schedule in Cal.com.
+
+    Args:
+        schedule_id (int): ID of the schedule to update (required).
+        name (str, optional): New schedule name.
+        timeZone (str, optional): New time zone string (e.g., "America/New_York").
+        isDefault (bool, optional): Set as default schedule.
+        availability (list, optional): List of availability blocks. Each block is a dict:
+            {
+                "days": ["Monday", "Tuesday", ...],  # Days must start with a capital letter
+                "startTime": "09:00",                # Time format: "HH:mm"
+                "endTime": "17:00"
+            }
+        overrides (list, optional): List of overrides for specific dates. Each override is a dict:
+            {
+                "date": "YYYY-MM-DD",
+                "startTime": "10:00",                # Time format: "HH:mm"
+                "endTime": "12:00"
+            }
+
+    Returns:
+        dict: If successful, parsed JSON response from Cal.com.
+              If failed, dict with "error" key and message.
+    """
+
+    url = "https://api.cal.com/v2/schedules/"
+    headers = header()
+    if not headers:
+        logging.error("Could not get Cal.com client")
+        return {"error": "Could not get Cal.com client"}
+
+    if not schedule_id:
+        logging.error("Missing required: schedule_id")
+        return {"error": "Missing required: schedule_id"}
+
+    url_new = url + str(schedule_id)
+    headers = header()
+    if not headers:
+        logging.error("Could not get Cal.com client")
+        return {"error": "Could not get Cal.com client"}
+
+    payload = {}
+
+    if name is not None:
+        payload["name"] = name
+    if timeZone is not None:
+        payload["timeZone"] = timeZone
+    if isDefault is not None:
+        payload["isDefault"] = isDefault
+    if availability:
+        payload["availability"] = availability
+    if overrides:
+        payload["overrides"] = overrides
+
+    logging.info(f"Updating Cal.com schedule ID: {schedule_id}")
+
+    try:
+        response = requests.patch(url_new, json=payload, headers=headers)
+        response.raise_for_status()
+        logging.info("Successfully updated Cal.com schedule")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Could not update Cal.com schedule: {e}")
+        return {"error": f"Could not update Cal.com schedule: {e}"}
+    except Exception as e:
+        logging.error(f"Unexpected error when updating Cal.com schedule: {e}")
+        return {"error": "Unexpected error occurred"}
 
 
 
@@ -139,8 +215,22 @@ if __name__ == "__main__":
     )
 
     print(result)
-    '''
+    
+    updated = cal_update_a_schedule(
+        schedule_id=783234,
+        name="Updated Default Schedule",
+        timeZone="America/Chicago",
+        availability=[
+            {
+                "days": ["Monday", "Tuesday", "Wednesday"],
+                "startTime": "10:00",
+                "endTime": "16:00"
+            }
+        ]
+    )
 
+    print("Update result:", updated)
+    '''
     pass
 
 
