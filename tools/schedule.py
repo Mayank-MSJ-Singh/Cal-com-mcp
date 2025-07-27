@@ -261,14 +261,52 @@ def cal_get_schedule(schedule_id: int) -> dict:
         logging.error(f"Unexpected error when getting schedule: {e}")
         return {"error": "Unexpected error occurred"}
 
+def cal_delete_a_schedule(schedule_id: int) -> dict:
+    """
+    Delete a schedule in Cal.com by its ID.
+
+    Args:
+        schedule_id (int): ID of the schedule to delete.
+
+    Returns:
+        dict: If successful, parsed JSON response from Cal.com.
+              If failed, dict with "error" key and message.
+    """
+
+    url = "https://api.cal.com/v2/schedules/"
+    headers = header()
+    if not headers:
+        logging.error("Could not get Cal.com client")
+        return {"error": "Could not get Cal.com client"}
+
+    if not schedule_id:
+        logging.error("Missing required: schedule_id")
+        return {"error": "Missing required: schedule_id"}
+
+    url_new = url + str(schedule_id)
+
+    logging.info(f"Deleting Cal.com schedule ID: {schedule_id}")
+
+    try:
+        response = requests.delete(url_new, headers=headers)
+        response.raise_for_status()
+        logging.info("Successfully deleted schedule")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Could not delete schedule: {e}")
+        return {"error": f"Could not delete schedule: {e}"}
+    except Exception as e:
+        logging.error(f"Unexpected error when deleting schedule: {e}")
+        return {"error": "Unexpected error occurred"}
+
+
 
 if __name__ == "__main__":
-    '''
     cal_schedules = cal_get_all_schedules()
     print(cal_schedules)
     
     result = cal_create_a_schedule(
-        name="My Default Schedule",
+        name="My newDefault Schedule",
         timeZone="America/New_York",
         isDefault=True,
         availability=[
@@ -285,7 +323,7 @@ if __name__ == "__main__":
     
     updated = cal_update_a_schedule(
         schedule_id=783234,
-        name="Updated Default Schedule",
+        name="Updated newDefault Schedule",
         timeZone="America/Chicago",
         availability=[
             {
@@ -300,7 +338,10 @@ if __name__ == "__main__":
     
     print(cal_get_default_schedule())
     print(cal_get_schedule(783234))
-    '''
+
+    id = 783248
+    print(cal_delete_a_schedule(id))
+
     pass
 
 
