@@ -1,6 +1,6 @@
 import requests
 import logging
-from base import get_calcom_client
+from .base import get_calcom_client
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ def header():
         "Authorization": client
     }
 
-def cal_get_stripe_connect_url() -> dict:
+async def cal_get_stripe_connect_url() -> dict:
     """
     Retrieve Stripe Connect URL from Cal.com API.
 
@@ -42,7 +42,7 @@ def cal_get_stripe_connect_url() -> dict:
         logger.exception(f"Unexpected error: {e}")
         return {"error": "Unexpected error occurred"}
 
-def cal_save_stripe_credentials(state: str, code: str) -> dict:
+async def cal_save_stripe_credentials(state: str, code: str) -> dict:
     """
     Save Stripe credentials in Cal.com.
 
@@ -74,7 +74,7 @@ def cal_save_stripe_credentials(state: str, code: str) -> dict:
         logger.exception(f"Unexpected error: {e}")
         return {"error": "Unexpected error occurred"}
 
-def cal_check_stripe_connection() -> dict:
+async def cal_check_stripe_connection() -> dict:
     """
     Check Stripe connection status in Cal.com.
 
@@ -100,10 +100,3 @@ def cal_check_stripe_connection() -> dict:
     except Exception as e:
         logger.exception(f"Unexpected error: {e}")
         return {"error": "Unexpected error occurred"}
-
-if __name__ == '__main__':
-    # Test examples (uncomment to use)
-    # print(cal_get_stripe_connect_url())
-    # print(cal_save_stripe_credentials("state_value", "code_value"))
-    # print(cal_check_stripe_connection())
-    pass

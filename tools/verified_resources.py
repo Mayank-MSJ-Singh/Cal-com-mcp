@@ -1,6 +1,6 @@
 import requests
 import logging
-from base import get_calcom_client
+from .base import get_calcom_client
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ def header():
     }
 
 
-def cal_request_email_verification_code(email: str) -> dict:
+async def cal_request_email_verification_code(email: str) -> dict:
     """
     Request email verification code from Cal.com API.
 
@@ -49,7 +49,7 @@ def cal_request_email_verification_code(email: str) -> dict:
         return {"error": "Unexpected error occurred"}
 
 
-def cal_verify_email_code(email: str, code: int) -> dict:
+async def cal_verify_email_code(email: str, code: int) -> dict:
     """
     Verify email with received code.
 
@@ -84,7 +84,7 @@ def cal_verify_email_code(email: str, code: int) -> dict:
         logger.exception(f"Unexpected error: {e}")
         return {"error": "Unexpected error occurred"}
 
-def cal_get_verified_emails() -> dict:
+async def cal_get_verified_emails() -> dict:
     """
     Retrieve all verified emails from Cal.com API.
 
@@ -111,7 +111,7 @@ def cal_get_verified_emails() -> dict:
     except Exception as e:
         logger.exception(f"Unexpected error when fetching verified emails: {e}")
         return {"error": "Unexpected error occurred"}
-def cal_get_verified_email_by_id(email_id: int) -> dict:
+async def cal_get_verified_email_by_id(email_id: int) -> dict:
     """
     Retrieve a specific verified email by its ID from Cal.com API.
 
@@ -154,7 +154,7 @@ def cal_get_verified_email_by_id(email_id: int) -> dict:
 
 
 #Phone No. Not Working even on Main site, Maybe problem with Indian No, Don't know!
-def cal_request_phone_verification_code(phone: str) -> dict:
+async def cal_request_phone_verification_code(phone: str) -> dict:
     """
     Request phone verification code from Cal.com API.
 
@@ -186,7 +186,7 @@ def cal_request_phone_verification_code(phone: str) -> dict:
         return {"error": "Unexpected error occurred"}
 
 
-def cal_verify_phone_code(phone: str, code: int) -> dict:
+async def cal_verify_phone_code(phone: str, code: int) -> dict:
     """
     Verify phone with received code.
 
@@ -219,7 +219,7 @@ def cal_verify_phone_code(phone: str, code: int) -> dict:
         return {"error": "Unexpected error occurred"}
 
 
-def cal_get_verified_phones(take: int = 250, skip: int = None) -> dict:
+async def cal_get_verified_phones(take: int = 250, skip: int = None) -> dict:
     """
     Retrieve verified phone numbers from Cal.com API with pagination support.
 
@@ -259,7 +259,7 @@ def cal_get_verified_phones(take: int = 250, skip: int = None) -> dict:
         logger.exception(f"Unexpected error when fetching verified phones: {e}")
         return {"error": "Unexpected error occurred"}
 
-def cal_get_verified_phone_by_id(phone_id: int) -> dict:
+async def cal_get_verified_phone_by_id(phone_id: int) -> dict:
     """
     Retrieve a specific verified phone number by its ID from Cal.com API.
 
@@ -298,14 +298,3 @@ def cal_get_verified_phone_by_id(phone_id: int) -> dict:
     except Exception as e:
         logger.exception(f"Unexpected error getting phone ID {phone_id}: {e}")
         return {"error": "Unexpected error occurred"}
-
-if __name__ == "__main__":
-    #print(cal_request_email_verification_code("mayanksinghjadon09@gmail.com"))
-    #print(cal_get_verified_emails())
-    #print(cal_get_verified_email_by_id(3926))
-    #print(cal_get_verified_phones())
-
-    print(cal_verify_email_code("mayanksinghjadon09@gmail.com", 265786))
-
-    #Phone Verifying is not working, even on website, Maybe problem with Indian No.?
-    pass

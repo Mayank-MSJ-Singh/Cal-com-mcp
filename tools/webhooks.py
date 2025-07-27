@@ -1,6 +1,6 @@
 import requests
 import logging
-from base import get_calcom_client
+from .base import get_calcom_client
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def header():
     }
 
 
-def cal_get_all_webhooks(take: int = 250, skip: int = None) -> dict:
+async def cal_get_all_webhooks(take: int = 250, skip: int = None) -> dict:
     """
     Retrieve all webhooks with pagination support.
 
@@ -56,7 +56,7 @@ def cal_get_all_webhooks(take: int = 250, skip: int = None) -> dict:
         return {"error": "Unexpected error occurred"}
 
 
-def cal_create_webhook(
+async def cal_create_webhook(
     active: bool,
     subscriberUrl: str,
     triggers: list[str],
@@ -158,7 +158,7 @@ def cal_create_webhook(
         return {"error": "Unexpected error occurred"}
 
 
-def cal_get_webhook(webhook_id: str) -> dict:
+async def cal_get_webhook(webhook_id: str) -> dict:
     """
     Get a specific webhook by ID.
 
@@ -194,7 +194,7 @@ def cal_get_webhook(webhook_id: str) -> dict:
         return {"error": "Unexpected error occurred"}
 
 
-def cal_update_webhook(
+async def cal_update_webhook(
     webhook_id: str,
     active: bool = None,
     subscriberUrl: str = None,
@@ -303,7 +303,7 @@ def cal_update_webhook(
         return {"error": "Unexpected error occurred"}
 
 
-def cal_delete_webhook(webhook_id: str) -> dict:
+async def cal_delete_webhook(webhook_id: str) -> dict:
     """
     Delete a webhook by ID.
 
@@ -331,146 +331,3 @@ def cal_delete_webhook(webhook_id: str) -> dict:
     except Exception as e:
         logger.exception(f"Unexpected error: {e}")
         return {"error": "Unexpected error occurred"}
-
-
-if __name__ == "__main__":
-    import uuid
-    import json
-
-    print("---- TESTING cal_get_all_webhook ----")
-
-    print("Test 1: take=5 (int)")
-    print(cal_get_all_webhooks(take=5))
-
-    print("\nTest 2: skip=2 (int)")
-    print(cal_get_all_webhooks(skip=2))
-
-    print("\nTest 3: take=10, skip=2 (int)")
-    print(cal_get_all_webhooks(take=10, skip=2))
-
-    print("\nTest 4: No parameters")
-    print(cal_get_all_webhooks())
-
-    print("---- TESTING cal_create_webhook with unique URLs ----")
-
-
-    def unique_url():
-        return f"https://example.com/webhook/{uuid.uuid4()}"
-
-
-    print("\nTest 5: Basic webhook creation")
-    print(cal_create_webhook(
-        active=True,
-        subscriberUrl=unique_url(),
-        triggers=["BOOKING_CREATED"]
-    ))
-
-    print("\nTest 6: Multiple triggers")
-    print(cal_create_webhook(
-        active=True,
-        subscriberUrl=unique_url(),
-        triggers=["BOOKING_CREATED", "BOOKING_CANCELLED"]
-    ))
-
-    print("\nTest 7: With payload template")
-    print(cal_create_webhook(
-        active=True,
-        subscriberUrl=unique_url(),
-        triggers=["BOOKING_CREATED"],
-        payloadTemplate='{"custom": "{{booker.name}}"}'
-    ))
-
-    print("\nTest 8: With secret")
-    print(cal_create_webhook(
-        active=True,
-        subscriberUrl=unique_url(),
-        triggers=["BOOKING_CREATED"],
-        secret="my-secret-123"
-    ))
-
-    print("\nTest 9: Inactive webhook")
-    print(cal_create_webhook(
-        active=False,
-        subscriberUrl=unique_url(),
-        triggers=["BOOKING_CREATED"]
-    ))
-
-    print("\nTest 10: All parameters")
-    print(cal_create_webhook(
-        active=True,
-        subscriberUrl=unique_url(),
-        triggers=["BOOKING_CREATED", "BOOKING_CANCELLED"],
-        payloadTemplate='{"custom":"{{booker.name}}"}',
-        secret="my-secret-123"
-    ))
-
-    print("---- TESTING cal_get_webhook / cal_update_webhook / cal_delete_webhook ----")
-
-
-    # Helper to create a webhook and return its ID
-    def create_test_webhook():
-        response = cal_create_webhook(
-            active=True,
-            subscriberUrl=f"https://example.com/webhook/{uuid.uuid4()}",
-            triggers=["BOOKING_CREATED"]
-        )
-        try:
-            data = json.loads(response)
-            return data["id"]  # Adjusted based on actual API response structure
-        except:
-            return None
-
-
-    # Test 11: Create webhook, then get it
-    print("\nTest 11: Create + Get webhook")
-    webhook_id = create_test_webhook()
-    if webhook_id:
-        print("Created webhook ID:", webhook_id)
-        print("Get webhook response:")
-        print(cal_get_webhook(webhook_id))
-    else:
-        print("Failed to create test webhook")
-
-    # Test 12: Update webhook - toggle active status
-    print("\nTest 12: Update webhook - toggle active")
-    if webhook_id:
-        print(cal_update_webhook(
-            webhookId=webhook_id,
-            active=False
-        ))
-
-    # Test 13: Update webhook - change URL
-    print("\nTest 13: Update webhook - change URL")
-    if webhook_id:
-        print(cal_update_webhook(
-            webhookId=webhook_id,
-            subscriberUrl=f"https://example.com/updated/{uuid.uuid4()}"
-        ))
-
-    # Test 14: Update webhook - change triggers
-    print("\nTest 14: Update webhook - change triggers")
-    if webhook_id:
-        print(cal_update_webhook(
-            webhookId=webhook_id,
-            triggers=["BOOKING_CANCELLED", "MEETING_ENDED"]
-        ))
-
-    # Test 15: Update webhook - all parameters
-    print("\nTest 15: Update webhook - all parameters")
-    if webhook_id:
-        print(cal_update_webhook(
-            webhookId=webhook_id,
-            active=True,
-            subscriberUrl=f"https://example.com/final/{uuid.uuid4()}",
-            triggers=["BOOKING_RESCHEDULED"],
-            payloadTemplate={"newTemplate": "{{attendee.email}}"},
-            secret="new-secret-456"
-        ))
-
-    # Test 16: Delete webhook
-    print("\nTest 16: Delete webhook")
-    if webhook_id:
-        print("Delete response:")
-        print(cal_delete_webhook(webhook_id))
-        print("Attempting to get deleted webhook:")
-        print(cal_get_webhook(webhook_id))

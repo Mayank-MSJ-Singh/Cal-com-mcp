@@ -1,7 +1,7 @@
 import requests
 import json
 import logging
-from base import get_calcom_client
+from .base import get_calcom_client
 
 
 # Configure logging
@@ -22,7 +22,7 @@ def header():
 
 
 
-def cal_get_all_schedules() -> dict:
+async def cal_get_all_schedules() -> dict:
     """
     Retrieve all schedules from Cal.com API.
 
@@ -50,7 +50,7 @@ def cal_get_all_schedules() -> dict:
         logging.error(f"Unexpected error when fetching Cal.com schedules: {e}")
         return {"error": "Unexpected error occurred"}
 
-def cal_create_a_schedule(
+async def cal_create_a_schedule(
     name: str,
     timeZone: str,
     isDefault: bool,
@@ -113,7 +113,7 @@ def cal_create_a_schedule(
         logging.error(f"Unexpected error when creating Cal.com schedule: {e}")
         return {"error": "Unexpected error occurred"}
 
-def cal_update_a_schedule(
+async def cal_update_a_schedule(
     schedule_id: int,
     name: str = None,
     timeZone: str = None,
@@ -189,7 +189,7 @@ def cal_update_a_schedule(
         logging.error(f"Unexpected error when updating Cal.com schedule: {e}")
         return {"error": "Unexpected error occurred"}
 
-def cal_get_default_schedule() -> dict:
+async def cal_get_default_schedule() -> dict:
     """
     Get the default schedule from Cal.com.
 
@@ -221,7 +221,7 @@ def cal_get_default_schedule() -> dict:
         return {"error": "Unexpected error occurred"}
 
 
-def cal_get_schedule(schedule_id: int) -> dict:
+async def cal_get_schedule(schedule_id: int) -> dict:
     """
     Get a specific schedule from Cal.com by its ID.
 
@@ -258,7 +258,7 @@ def cal_get_schedule(schedule_id: int) -> dict:
         logging.error(f"Unexpected error when getting schedule: {e}")
         return {"error": "Unexpected error occurred"}
 
-def cal_delete_a_schedule(schedule_id: int) -> dict:
+async def cal_delete_a_schedule(schedule_id: int) -> dict:
     """
     Delete a schedule in Cal.com by its ID.
 
@@ -295,50 +295,3 @@ def cal_delete_a_schedule(schedule_id: int) -> dict:
     except Exception as e:
         logging.error(f"Unexpected error when deleting schedule: {e}")
         return {"error": "Unexpected error occurred"}
-
-
-
-if __name__ == "__main__":
-    cal_schedules = cal_get_all_schedules()
-    print(cal_schedules)
-    
-    result = cal_create_a_schedule(
-        name="My newDefault Schedule",
-        timeZone="America/New_York",
-        isDefault=True,
-        availability=[
-            {
-                "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-                "startTime": "09:00",
-                "endTime": "17:00"
-            }
-        ],
-        overrides=[]
-    )
-
-    print(result)
-    
-    updated = cal_update_a_schedule(
-        schedule_id=783234,
-        name="Updated newDefault Schedule",
-        timeZone="America/Chicago",
-        availability=[
-            {
-                "days": ["Monday", "Tuesday", "Wednesday"],
-                "startTime": "10:00",
-                "endTime": "16:00"
-            }
-        ]
-    )
-
-    print("Update result:", updated)
-    
-    print(cal_get_default_schedule())
-    print(cal_get_schedule(783234))
-
-    id = 783248
-    print(cal_delete_a_schedule(id))
-
-    pass
-
-
