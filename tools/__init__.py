@@ -23,12 +23,20 @@ from .verified_resources import (
     cal_get_verified_emails,
     cal_get_verified_email_by_id,
 
-    #Not added functions that were not working on my side, but in the code -
-    #cal_request_phone_verification_code,
-    #cal_verify_phone_code,
+    # Not added functions that were not working on my side, but in the code -
+    # cal_request_phone_verification_code,
+    # cal_verify_phone_code,
 
     cal_get_verified_phones,
     cal_get_verified_phone_by_id
+)
+
+from .webhooks import (
+    cal_get_all_webhooks,
+    cal_create_webhook,
+    cal_get_webhook,
+    cal_update_webhook,
+    cal_delete_webhook
 )
 
 __all__ = [
@@ -52,11 +60,14 @@ __all__ = [
     "cal_request_email_verification_code",
     "cal_verify_email_code",
     "cal_get_verified_emails",
-
-    #Not added functions that were not working on my side, but in the code -
-    #'cal_request_phone_verification_code',
-    #'cal_verify_phone_code',
-
+    "cal_get_verified_email_by_id",
     "cal_get_verified_phones",
-    "cal_get_verified_phone_by_id"
+    "cal_get_verified_phone_by_id",
+
+    # webhooks.py
+    "cal_get_all_webhooks",
+    "cal_create_webhook",
+    "cal_get_webhook",
+    "cal_update_webhook",
+    "cal_delete_webhook"
 ]
